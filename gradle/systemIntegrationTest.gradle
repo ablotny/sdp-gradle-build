@@ -1,0 +1,74 @@
+file("src/systemIntegrationTest/java").mkdirs()
+file("src/systemIntegrationTest/resources").mkdirs()
+
+sourceSets{
+    systemIntegrationTest {
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+    }
+}
+
+/** this allows the usage of compile dependencies within the sysIntTest-scope */
+configurations {
+    systemIntegrationTestCompile.extendsFrom compile
+}
+
+task createSystemIntegrationConfigForCurrentStage {
+    outputs.upToDateWhen { false }
+
+    doFirst {
+        // create folder if not exists
+        def resourceFolderPath = "src/systemIntegrationTest/resources"
+        file(resourceFolderPath).mkdirs()
+
+        def resourceFile = "$resourceFolderPath/current-stage.properties"
+        def f = file(resourceFile)
+        if (f.exists()) {
+            f.delete()
+            f = file(resourceFile)
+        }
+
+        def url = config.cloudfoundry.host +
+                (isArt() ? "." : "-test.") +
+                config.cloudfoundry.domain
+
+        println "creating property file for stage = ${config.cloudfoundry.space} with url = $url"
+
+        f << "application.url=http://${url}"
+
+    }
+}
+
+private boolean isArt() {
+    project.hasProperty("env") && project.getProperty("env") == "art"
+}
+
+task systemIntegrationTest(type: Test, dependsOn: createSystemIntegrationConfigForCurrentStage) {
+
+    testClassesDir = sourceSets.systemIntegrationTest.output.classesDir
+    classpath = sourceSets.systemIntegrationTest.runtimeClasspath
+
+    description = 'Runs the system integration tests agains a deployed application.'
+    group = 'verification'
+
+    testLogging {
+        // Show that tests are run in the command-line output
+        events "started", "skipped", "passed", "failed"
+        exceptionFormat "full"
+    }
+
+    doFirst{
+        println "sleeping 5sec..."
+        sleep 5000
+        println "sleeping done!"
+    }
+}
+systemIntegrationTest.outputs.upToDateWhen { false }
+
+idea {
+    module {
+        testSourceDirs += file('src/systemIntegrationTest/java')
+        scopes.TEST.plus += configurations.systemIntegrationTestCompile
+        scopes.TEST.plus += configurations.systemIntegrationTestRuntime
+    }
+}

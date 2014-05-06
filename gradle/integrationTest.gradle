@@ -1,0 +1,47 @@
+file("src/integrationTest/java").mkdirs()
+file("src/integrationTest/resources").mkdirs()
+
+sourceSets {
+    integrationTest {
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+    }
+}
+
+/** this allows the usage of compile dependencies within the intTest-scope */
+configurations {
+    integrationTestCompile.extendsFrom compile
+}
+
+task integrationTest(type: Test) {
+
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+
+    description = 'Runs the integration tests.'
+    group = 'verification'
+
+    testLogging {
+        // Show that tests are run in the command-line output
+        events "started", "skipped", "passed", "failed"
+        exceptionFormat "full"
+    }
+}
+
+check.dependsOn integrationTest
+
+idea {
+    module {
+        testSourceDirs += file('src/integrationTest/java')
+        scopes.TEST.plus += configurations.integrationTestCompile
+        scopes.TEST.plus += configurations.integrationTestRuntime
+    }
+}
+
+if (project.hasProperty("sonar.username")) {
+    sonarRunner {
+        sonarProperties {
+            property "sonar.junit.reportsPath", test.reports.junitXml.destination
+        }
+    }
+}

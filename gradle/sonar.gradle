@@ -1,0 +1,34 @@
+/**
+ * SONAR Runner
+ * {@see http://www.gradle.org/docs/current/userguide/sonar_runner_plugin.html}
+ */
+ext {
+    sonarHostUrl = project.hasProperty('sonar.host.url') ? project.getProperty('sonar.host.url') : config.sonar.hostUrl
+    sonarJdbcUrl = project.hasProperty('sonar.jdbc.url') ? project.getProperty('sonar.jdbc.url') : config.sonar.jdbcUrl
+    jdbcDriverClassName = project.hasProperty('sonar.jdbc.driverClassName') ? project.getProperty('sonar.jdbc.driverClassName') : config.sonar.jdbcDriverClassName
+    sonarUsername = project.hasProperty('sonar.username') ? project.getProperty('sonar.username') : "no-user"
+    sonarPassword = project.hasProperty('sonar.password') ? project.getProperty('sonar.password') : "no-pass"
+}
+
+if (project.hasProperty("sonar.username")) {
+    apply plugin: "sonar-runner"
+    apply plugin: "jacoco"
+
+    sonarRunner {
+        sonarProperties {
+            property "sonar.host.url", sonarHostUrl
+
+            // JDBC properties
+            property "sonar.jdbc.url", sonarJdbcUrl
+            property "sonar.jdbc.driverClassName", jdbcDriverClassName
+
+            // authentication
+            property "sonar.login", sonarUsername
+            property "sonar.password", sonarPassword
+
+            // code coverage
+            property "sonar.jacoco.itReportPath", "${buildDir}/jacoco/integrationTest.exec"
+            property "sonar.sourceEncoding", "UTF-8"
+        }
+    }
+}

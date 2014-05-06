@@ -1,0 +1,52 @@
+// see https://github.com/cloudfoundry/cf-java-client/tree/master/cloudfoundry-gradle-plugin
+apply plugin: 'cloudfoundry'
+
+cloudfoundry {
+    username = project.property("cf.username")
+    password = project.property("cf.password")
+    target = config.cloudfoundry.target
+
+    organization = config.cloudfoundry.organization
+    space = config.cloudfoundry.space
+
+    application = config.cloudfoundry.application
+    host = config.cloudfoundry.host
+    domain = config.cloudfoundry.domain
+
+    variants = ['-blue', '-green']
+    file = file(project.filePathForCloundfoundryDeployment)
+
+    // set defaults, may be overriden
+    instances = 1
+    memory = 256
+
+    trustSelfSignedCerts = true
+
+    services {
+        config.cloudfoundry.services.each { key, value ->
+            "$key" {
+                label = value.label
+                bind = value.bind
+                userProvidedCredentials = value.userProvidedCredentials
+            }
+        }
+    }
+}
+
+// directly transfer a subset of properties
+def names = ['buildpack', 'instances', 'memory', 'command', 'diskQuota', 'healthCheckTimeout', 'env']
+config.cloudfoundry
+        .grep { entry -> names.contains(entry.key) }
+        .each{ entry ->
+
+    cloudfoundry[entry.key] = entry.value
+}
+
+// the following swap needs a cooldown time
+task sleep << {
+    println "sleeping"
+    sleep 20000
+    println "sleeping done"
+}
+
+cf_deploy.finalizedBy sleep

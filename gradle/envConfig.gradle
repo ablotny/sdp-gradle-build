@@ -1,0 +1,13 @@
+/**
+ * Load a buildConfig depending on the current environment
+ *
+ * if non provided, use default 'development'
+ */
+def env = project.hasProperty('env') ? project.getProperty('env') : 'development'
+logger.quiet "Loading configuration for environment '$env'."
+def configFile = file(project.buildConfigFilePath)
+def parsedConfig = new ConfigSlurper(env).parse(configFile.toURL())
+
+allprojects {
+    ext.config = parsedConfig
+}

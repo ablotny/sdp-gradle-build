@@ -1,0 +1,26 @@
+class ProjectVersion {
+    Integer major
+    Integer minor
+    String build
+
+    ProjectVersion(Integer major, Integer minor, String build) {
+        this.major = major
+        this.minor = minor
+        this.build = build
+    }
+
+    @Override
+    String toString() {
+        String fullVersion = "$major.$minor"
+
+        if(build) {
+            fullVersion += ".$build"
+        }
+        fullVersion
+    }
+}
+
+allprojects {
+    ext.buildTimestamp = new Date().format('yyyy-MM-dd HH:mm:ss')
+    project.version = new ProjectVersion(project.majorVersion, project.minorVersion, project.sourceBuildNumber)
+}

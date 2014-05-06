@@ -1,0 +1,15 @@
+//def baseUrl = "https://raw.githubusercontent.com/as-ideas/sdp-gradle-build/master/gradle";
+def baseUrl = project.getProperty("scriptBaseUrl")
+
+apply from: "$baseUrl/gradle/sonar.gradle"
+apply from: "$baseUrl/gradle/integrationTest.gradle"
+apply from: "$baseUrl/gradle/systemIntegrationTest.gradle"
+
+apply from: "$baseUrl/gradle/envConfig.gradle"
+apply from: "$baseUrl/gradle/versioning.gradle"
+
+apply from: "$baseUrl/gradle/publishMaven.gradle"
+
+if (project.hasProperty("cf.username")) {
+    apply from: "$baseUrl/gradle/deployCloudFoundry.gradle"
+}
