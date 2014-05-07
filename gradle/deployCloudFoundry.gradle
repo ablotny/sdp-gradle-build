@@ -28,6 +28,9 @@ cloudfoundry {
                 label = value.label
                 bind = value.bind
                 userProvidedCredentials = value.userProvidedCredentials
+                if (null != value.plan) {
+                  plan = value.plan
+              }
             }
         }
     }
